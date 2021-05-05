@@ -152,7 +152,7 @@ void DCGCalculator::CalMaxDCG(const std::vector<data_size_t>& ks,
     for (size_t i = 0; i < ks.size(); ++i) {
       data_size_t cur_k = ks[i];
       if (cur_k > num_data) { cur_k = num_data; }
-      
+
       for (data_size_t j = cur_left; j < num_data; ++j) {
 
         //default to 1.0
@@ -170,7 +170,7 @@ void DCGCalculator::CalMaxDCG(const std::vector<data_size_t>& ks,
       }
       std::stable_sort(knowns.begin(), knowns.end(), std::greater <double>());
       std::stable_sort(unknowns.begin(), unknowns.end(), std::greater <double>());
-        
+
       double cur_result = 0.0f;
       for (int j = 0; j < cur_k; ++j) {
           cur_result += knowns[j] * unknowns[j];
@@ -201,10 +201,10 @@ void DCGCalculator::CalDCG(const std::vector<data_size_t>& ks, const label_t* la
     for (data_size_t j = cur_left; j < cur_k; ++j) {
       data_size_t idx = sorted_idx[j];
       if (weighted) {
-        
+
         //default to 1.0
         double position_bias_ratio = 1.0;
-        
+
         if (!position_bias_lookup_.empty()) {
             //try to find position bias
             auto it = position_bias_lookup_.find(std::make_pair(std::min(idx+1, position_bias_lookup_max_), std::min(j+1, position_bias_lookup_max_)));
@@ -213,12 +213,13 @@ void DCGCalculator::CalDCG(const std::vector<data_size_t>& ks, const label_t* la
                 position_bias_ratio = it->second;
             }
         }
-   
+
         cur_result += label_gain_[static_cast<int>(label[idx])] * discount_[j] * position_bias_ratio;
       }
       else {
         cur_result += label_gain_[static_cast<int>(label[idx])] * discount_[j];
       }
+
 
     }
     (*out)[i] = cur_result;
