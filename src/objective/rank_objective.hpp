@@ -184,6 +184,7 @@ class LambdarankNDCG : public RankingObjective {
       } else {
         Log::Warning("POS_BIAS_PATH environment variable not found, using biases of 1.0");
       }
+
   }
 
   inline void GetGradientsForOneQuery(data_size_t query_id, data_size_t cnt,
@@ -250,6 +251,8 @@ class LambdarankNDCG : public RankingObjective {
             if (it != position_bias_lookup_.end()){
                 position_bias_ratio = it->second;
             }
+        } else {
+            position_bias_ratio = 1.0f;
         }
 
         const double delta_score = high_score - low_score;
