@@ -220,7 +220,6 @@ void DCGCalculator::CalDCG(const std::vector<data_size_t>& ks, const label_t* la
         cur_result += label_gain_[static_cast<int>(label[idx])] * discount_[j];
       }
 
-
     }
     (*out)[i] = cur_result;
     cur_left = cur_k;
