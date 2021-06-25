@@ -158,7 +158,7 @@ class LambdarankNDCG : public RankingObjective {
       // 1,2,0.58374
       // 1,3,0.34287
 
-      if (const char* position_bias_path = std::getenv("POS_BIAS_PATH")) {
+      if (const char* position_bias_path = "position_bias_ratios.csv") {
           std::fstream pb_fin;
           pb_fin.open(position_bias_path, std::ios::in);
 
@@ -251,8 +251,6 @@ class LambdarankNDCG : public RankingObjective {
             if (it != position_bias_lookup_.end()){
                 position_bias_ratio = it->second;
             }
-        } else {
-            position_bias_ratio = 1.0f;
         }
 
         const double delta_score = high_score - low_score;
