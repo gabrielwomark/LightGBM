@@ -230,6 +230,34 @@ def train(
             valid_set._reverse_update_params()
     booster.best_iteration = 0
 
+    # print pre-training eval
+    def print_init_eval(callbacks):
+        init_evaluation_result_list = []
+        if valid_sets is not None:
+            if is_valid_contain_train:
+                init_evaluation_result_list.extend(booster.eval_train(feval))
+            init_evaluation_result_list.extend(booster.eval_valid(feval))
+        init_env = callback.CallbackEnv(model=booster,
+                                        params=params,
+                                        iteration=-1,
+                                        begin_iteration=0,
+                                        end_iteration=0+num_boost_round,
+                                        evaluation_result_list=init_evaluation_result_list)
+        print_eval = callback.print_evaluation()
+        print_eval(init_env)
+
+        # find wandb callback in param and log metric
+        wandb_cb = None
+        for cb in callbacks:
+            if 'wandb_callback' in cb.__globals__:
+                wandb_cb = cb
+                break
+
+        if wandb_cb is not None:
+            wandb_cb(init_env)
+
+    print_init_eval(callbacks)
+
     # start training
     for i in range(init_iteration, init_iteration + num_boost_round):
         for cb in callbacks_before_iter:
