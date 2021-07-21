@@ -20,8 +20,7 @@ class EarlyStopException(Exception):
         best_model: lightgbm.Booster
             The best model at the best iteration
             only enabled in dart mode
-        best_score : float
-            The score of the best iteration.
+        best_score : float The score of the best iteration.
         """
         super().__init__()
         self.best_iteration = best_iteration
@@ -148,7 +147,8 @@ def reset_parameter(**kwargs):
     return _callback
 
 
-def early_stopping(stopping_rounds, first_metric_only=False, verbose=True):
+def early_stopping(stopping_rounds, first_metric_only=False, verbose=True,
+                   first_valid_set_only=False):
     """Create a callback that activates early stopping.
 
     Activates early stopping.
@@ -167,6 +167,8 @@ def early_stopping(stopping_rounds, first_metric_only=False, verbose=True):
        Whether to use only the first metric for early stopping.
     verbose : bool, optional (default=True)
         Whether to print message with early stopping information.
+    first_valid_set_only: bool, optional (default=False)
+        Whether to only use the first valid set for early stopping.
 
     Returns
     -------
@@ -217,6 +219,9 @@ def early_stopping(stopping_rounds, first_metric_only=False, verbose=True):
         if not cmp_op:
             _init(env)
         for i in range(len(env.evaluation_result_list)):
+            if first_valid_set_only and env.evaluation_result_list[i][0] == "train":
+                continue
+
             score = env.evaluation_result_list[i][2]
             if best_score_list[i] is None or cmp_op[i](score, best_score[i]):
                 best_score[i] = score
@@ -229,7 +234,7 @@ def early_stopping(stopping_rounds, first_metric_only=False, verbose=True):
             if first_metric_only and first_metric[0] != eval_name_splitted[-1]:
                 continue  # use only the first metric for early stopping
             if ((env.evaluation_result_list[i][0] == "cv_agg" and eval_name_splitted[0] == "train"
-                 or env.evaluation_result_list[i][0] == env.model._train_data_name)):
+                or env.evaluation_result_list[i][0] == env.model._train_data_name)):
                 _final_iteration_check(env, eval_name_splitted, i)
                 continue  # train data for lgb.cv or sklearn wrapper (underlying lgb.train)
             elif env.iteration - best_iter[i] >= stopping_rounds:
@@ -240,5 +245,8 @@ def early_stopping(stopping_rounds, first_metric_only=False, verbose=True):
                         _log_info("Evaluated only: {}".format(eval_name_splitted[-1]))
                 raise EarlyStopException(best_iter[i], best_model[i], best_score_list[i])
             _final_iteration_check(env, eval_name_splitted, i)
+
+            if first_valid_set_only:
+                break
     _callback.order = 30
     return _callback
