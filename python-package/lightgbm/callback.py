@@ -122,7 +122,7 @@ class _RecordEvaluationCallback:
                 self.eval_result[data_name].setdefault(f'{eval_name}-stdv', [])
 
     def __call__(self, env: CallbackEnv) -> None:
-        if env.iteration == env.begin_iteration:
+        if env.iteration == env.begin_iteration or not self.eval_result:
             self._init(env)
         for item in env.evaluation_result_list:
             if len(item) == 4:
