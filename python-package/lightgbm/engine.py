@@ -248,7 +248,7 @@ def train(
 
         # find wandb callback in param and log metric
         wandb_cb = None
-        for cb in callbacks:
+        for cb in callbacks_set:
             if 'wandb_callback' in cb.__globals__:
                 wandb_cb = cb
                 break
@@ -286,6 +286,7 @@ def train(
                                         evaluation_result_list=evaluation_result_list))
         except callback.EarlyStopException as earlyStopException:
             booster.best_iteration = earlyStopException.best_iteration + 1
+            booster.best_dart_model = earlyStopException.best_model
             evaluation_result_list = earlyStopException.best_score
             break
     booster.best_score = collections.defaultdict(collections.OrderedDict)
@@ -370,7 +371,7 @@ def _make_n_folds(
             group_info = np.array(full_data.get_group(), dtype=np.int32, copy=False)
             flatted_group = np.repeat(range(len(group_info)), repeats=group_info)
             group_kfold = _LGBMGroupKFold(n_splits=nfold)
-            folds = group_kfold.split(X=np.empty(num_data), groups=flatted_group)
+            folds = group_kfold.split(X=np.zeros(num_data), groups=flatted_group)
         elif stratified:
             if not SKLEARN_INSTALLED:
                 raise LightGBMError('scikit-learn is required for stratified cv')
