@@ -243,18 +243,8 @@ def train(
                                         begin_iteration=0,
                                         end_iteration=0+num_boost_round,
                                         evaluation_result_list=init_evaluation_result_list)
-        print_eval = callback.print_evaluation()
+        print_eval = callback.log_evaluation()
         print_eval(init_env)
-
-        # find wandb callback in param and log metric
-        wandb_cb = None
-        for cb in callbacks_set:
-            if 'wandb_callback' in cb.__globals__:
-                wandb_cb = cb
-                break
-
-        if wandb_cb is not None:
-            wandb_cb(init_env)
 
     print_init_eval(callbacks)
 
@@ -286,7 +276,6 @@ def train(
                                         evaluation_result_list=evaluation_result_list))
         except callback.EarlyStopException as earlyStopException:
             booster.best_iteration = earlyStopException.best_iteration + 1
-            booster.best_dart_model = earlyStopException.best_model
             evaluation_result_list = earlyStopException.best_score
             break
     booster.best_score = collections.defaultdict(collections.OrderedDict)
