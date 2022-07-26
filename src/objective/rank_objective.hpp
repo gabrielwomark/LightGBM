@@ -247,7 +247,7 @@ class LambdarankNDCG : public RankingObjective {
         // If there is no position bias map, just use ratio of 1.0
         double position_bias_ratio = 1.0;
         if (!position_bias_lookup_.empty()) {
-            auto it = position_bias_lookup_.find(std::make_pair(std::min(high+1, position_bias_lookup_max_), std::min(low+1, position_bias_lookup_max_)));
+            auto it = position_bias_lookup_.find(std::make_pair(1, std::min(high+1, position_bias_lookup_max_)));
             if (it != position_bias_lookup_.end()){
                 position_bias_ratio = it->second;
             }
@@ -269,12 +269,12 @@ class LambdarankNDCG : public RankingObjective {
         double p_lambda = GetSigmoid(delta_score);
         double p_hessian = p_lambda * (1.0f - p_lambda);
         // update
-        p_lambda *= -sigmoid_ * delta_pair_NDCG;
-        p_hessian *= sigmoid_ * sigmoid_ * delta_pair_NDCG;
-        lambdas[low] -= static_cast<score_t>(p_lambda) * static_cast<score_t>(position_bias_ratio);
-        hessians[low] += static_cast<score_t>(p_hessian) * static_cast<score_t>(position_bias_ratio);
-        lambdas[high] += static_cast<score_t>(p_lambda) * static_cast<score_t>(position_bias_ratio);
-        hessians[high] += static_cast<score_t>(p_hessian) * static_cast<score_t>(position_bias_ratio) ;
+        p_lambda *= ((-sigmoid_ * delta_pair_NDCG) / position_bias_ratio);
+        p_hessian *= ((sigmoid_ * sigmoid_ * delta_pair_NDCG) / position_bias_ratio);
+        lambdas[low] -= static_cast<score_t>(p_lambda);
+        hessians[low] += static_cast<score_t>(p_hessian);
+        lambdas[high] += static_cast<score_t>(p_lambda);
+        hessians[high] += static_cast<score_t>(p_hessian);
         // lambda is negative, so use minus to accumulate
         sum_lambdas -= 2 * p_lambda;
       }
